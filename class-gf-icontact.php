@@ -5,37 +5,90 @@ GFForms::include_feed_addon_framework();
 class GFiContact extends GFFeedAddOn {
 	
 	protected $_version = GF_ICONTACT_VERSION;
-	protected $_min_gravityforms_version = '1.9.6.10';
+	protected $_min_gravityforms_version = '1.9.14.26';
 	protected $_slug = 'gravityformsicontact';
 	protected $_path = 'gravityformsicontact/icontact.php';
 	protected $_full_path = __FILE__;
 	protected $_url = 'http://www.gravityforms.com';
 	protected $_title = 'Gravity Forms iContact Add-On';
 	protected $_short_title = 'iContact';
+	protected $_enable_rg_autoupgrade = true;
+	protected $_new_custom_fields = array();
+	protected $api = null;
+	private static $_instance = null;
 
-	// Members plugin integration
-	protected $_capabilities = array( 'gravityforms_icontact', 'gravityforms_icontact_uninstall' );
-
-	// Permissions
+	/* Permissions */
 	protected $_capabilities_settings_page = 'gravityforms_icontact';
 	protected $_capabilities_form_settings = 'gravityforms_icontact';
 	protected $_capabilities_uninstall = 'gravityforms_icontact_uninstall';
-	protected $_enable_rg_autoupgrade = true;
 
-	protected $api = null;
-	protected $_new_custom_fields = array();
-	private static $_instance = null;
+	/* Members plugin integration */
+	protected $_capabilities = array( 'gravityforms_icontact', 'gravityforms_icontact_uninstall' );
 
+	/**
+	 * Get instance of this class.
+	 * 
+	 * @access public
+	 * @static
+	 * @return $_instance
+	 */
 	public static function get_instance() {
 		
-		if ( self::$_instance == null )
-			self::$_instance = new GFiContact();
+		if ( self::$_instance == null ) {
+			self::$_instance = new self;
+		}
 
 		return self::$_instance;
 		
 	}
 
-	/* Settings Page */
+	/**
+	 * Register needed plugin hooks and PayPal delayed payment support.
+	 * 
+	 * @access public
+	 * @return void
+	 */
+	public function init() {
+		
+		parent::init();
+		
+		$this->add_delayed_payment_support(
+			array(
+				'option_label' => esc_html__( 'Subscribe contact to iContact only when payment is received.', 'gravityformsicontact' )
+			)
+		);
+		
+	}
+
+	/**
+	 * Register needed styles.
+	 * 
+	 * @access public
+	 * @return array $styles
+	 */
+	public function styles() {
+		
+		$styles = array(
+			array(
+				'handle'  => 'gform_icontact_form_settings_css',
+				'src'     => $this->get_base_url() . '/css/form_settings.css',
+				'version' => $this->_version,
+				'enqueue' => array(
+					array( 'admin_page' => array( 'form_settings' ) ),
+				)
+			)
+		);
+		
+		return array_merge( parent::styles(), $styles );
+		
+	}
+
+	/**
+	 * Setup plugin settings fields.
+	 * 
+	 * @access public
+	 * @return array
+	 */
 	public function plugin_settings_fields() {
 						
 		return array(
@@ -45,29 +98,37 @@ class GFiContact extends GFFeedAddOn {
 				'fields'      => array(
 					array(
 						'name'              => 'app_id',
-						'label'             => __( 'Application ID', 'gravityformsicontact' ),
+						'label'             => esc_html__( 'Application ID', 'gravityformsicontact' ),
 						'type'              => 'text',
 						'class'             => 'medium',
 						'feedback_callback' => array( $this, 'initialize_api' )
 					),
 					array(
 						'name'              => 'api_username',
-						'label'             => __( 'API Username', 'gravityformsicontact' ),
+						'label'             => esc_html__( 'Account Email Address', 'gravityformsicontact' ),
 						'type'              => 'text',
 						'class'             => 'medium',
 						'feedback_callback' => array( $this, 'initialize_api' )
 					),
 					array(
 						'name'              => 'api_password',
-						'label'             => __( 'API Password', 'gravityformsicontact' ),
+						'label'             => esc_html__( 'API Password', 'gravityformsicontact' ),
 						'type'              => 'text',
 						'class'             => 'medium',
+						'input_type'        => 'password',
 						'feedback_callback' => array( $this, 'initialize_api' )
+					),
+					array(
+						'name'              => 'client_folder',
+						'label'             => esc_html__( 'Client Folder', 'gravityformsicontact' ),
+						'type'              => 'select',
+						'choices'           => $this->client_folders_for_plugin_setting(),
+						'dependency'        => array( $this, 'initialize_api' )
 					),
 					array(
 						'type'              => 'save',
 						'messages'          => array(
-							'success' => __( 'iContact settings have been updated.', 'gravityformsicontact' )
+							'success' => esc_html__( 'iContact settings have been updated.', 'gravityformsicontact' )
 						),
 					),
 				),
@@ -76,12 +137,17 @@ class GFiContact extends GFFeedAddOn {
 		
 	}
 	
-	/* Prepare plugin settings description */
+	/**
+	 * Prepare plugin settings description.
+	 * 
+	 * @access public
+	 * @return string $description
+	 */
 	public function plugin_settings_description() {
 		
 		$description  = '<p>';
 		$description .= sprintf(
-			__( 'iContact makes it easy to send email newsletters to your customers, manage your subscriber lists, and track campaign performance. Use Gravity Forms to collect customer information and automatically add them to your iContact list. If you don\'t have an iConact account, you can %1$s sign up for one here.%2$s', 'gravityformsicontact' ),
+			esc_html__( 'iContact makes it easy to send email newsletters to your customers, manage your subscriber lists, and track campaign performance. Use Gravity Forms to collect customer information and automatically add them to your iContact list. If you don\'t have an iConact account, you can %1$s sign up for one here.%2$s', 'gravityformsicontact' ),
 			'<a href="http://www.icontact.com/" target="_blank">', '</a>'
 		);
 		$description .= '</p>';
@@ -89,20 +155,20 @@ class GFiContact extends GFFeedAddOn {
 		if ( ! $this->initialize_api() ) {
 			
 			$description .= '<p>';
-			$description .= __( 'Gravity Forms iContact Add-On requires your Application ID, API username and API password. To obtain an application ID, follow the steps below:', 'gravityformsicontact' );
+			$description .= esc_html__( 'Gravity Forms iContact Add-On requires your Application ID, API username and API password. To obtain an application ID, follow the steps below:', 'gravityformsicontact' );
 			$description .= '</p>';
 			
 			$description .= '<ol>';
 			$description .= '<li>' . sprintf(
-				__( 'Visit iContact\'s %1$s application registration page.%2$s', 'gravityformsicontact' ),
+				esc_html__( 'Visit iContact\'s %1$s application registration page.%2$s', 'gravityformsicontact' ),
 				'<a href="https://app.icontact.com/icp/core/registerapp/" target="_blank">', '</a>'
 			) . '</li>';
-			$description .= '<li>' . __( 'Set an application name and description for your application.', 'gravityformsicontact' ) . '</li>';
-			$description .= '<li>' . __( 'Choose to show information for API 2.0.', 'gravityformsicontact' ) . '</li>';
-			$description .= '<li>' . __( 'Copy the provided API-AppId into the Application ID setting field below.', 'gravityformsicontact' ) . '</li>';
-			$description .= '<li>' . __( 'Click "Enable this AppId for your account".', 'gravityformsicontact' ) . '</li>';
-			$description .= '<li>' . __( 'Create a password for your application and click save.', 'gravityformsicontact' ) . '</li>';
-			$description .= '<li>' . __( 'Enter your API password, along with your iContact account username, into the settings fields below.', 'gravityformsicontact' ) . '</li>';
+			$description .= '<li>' . esc_html__( 'Set an application name and description for your application.', 'gravityformsicontact' ) . '</li>';
+			$description .= '<li>' . esc_html__( 'Choose to show information for API 2.0.', 'gravityformsicontact' ) . '</li>';
+			$description .= '<li>' . esc_html__( 'Copy the provided API-AppId into the Application ID setting field below.', 'gravityformsicontact' ) . '</li>';
+			$description .= '<li>' . esc_html__( 'Click "Enable this AppId for your account".', 'gravityformsicontact' ) . '</li>';
+			$description .= '<li>' . esc_html__( 'Create a password for your application and click save.', 'gravityformsicontact' ) . '</li>';
+			$description .= '<li>' . esc_html__( 'Enter your API password, along with your iContact account username, into the settings fields below.', 'gravityformsicontact' ) . '</li>';
 			$description .= '</ol>';
 			
 		}
@@ -111,7 +177,59 @@ class GFiContact extends GFFeedAddOn {
 		
 	}
 
-	/* Setup feed settings fields */
+	/**
+	 * Prepare client folders for plugin settings.
+	 * 
+	 * @access public
+	 * @return void
+	 */
+	public function client_folders_for_plugin_setting() {
+		
+		$choices = array(
+			array(
+				'label' => esc_html__( 'Select a Client Folder', 'gravityformsicontact' ),
+				'value' => ''
+			)
+		);
+		
+		/* If API is not initialized, return choices array. */
+		if ( ! $this->initialize_api() ) {
+			return $choices;
+		}
+		
+		/* Get client folders. */
+		try {
+			
+			$client_folders = $this->api->get_client_folders();
+			
+		} catch ( Exception $e ) {
+			
+			$this->log_error( __METHOD__ . '(): Unable to get client folders; ' . $e->getMessage() );
+			
+			return $choices;
+			
+		}
+				
+		/* Add client folders to choices array. */
+		foreach ( $client_folders as $folder ) {
+			
+			$choices[] = array(
+				'label' => rgar( $folder, 'name' ) ? $folder['name'] : esc_html__( 'Default Client Folder', 'gravityformsicontact' ),
+				'value' => $folder['clientFolderId']
+			);
+			
+		}
+		
+		return $choices;
+		
+	}
+
+	/**
+	 * Setup fields for feed settings.
+	 * 
+	 * @access public
+	 * @return array
+	 */
 	public function feed_settings_fields() {
 		
 		return array(
@@ -120,40 +238,40 @@ class GFiContact extends GFFeedAddOn {
 				'fields' => array(
 					array(
 						'name'           => 'feed_name',
-						'label'          => __( 'Feed Name', 'gravityformsicontact' ),
+						'label'          => esc_html__( 'Feed Name', 'gravityformsicontact' ),
 						'type'           => 'text',
 						'required'       => true,
-						'tooltip'        => '<h6>'. __( 'Name', 'gravityformsicontact' ) .'</h6>' . __( 'Enter a feed name to uniquely identify this setup.', 'gravityformsicontact' )
+						'tooltip'        => '<h6>'. esc_html__( 'Name', 'gravityformsicontact' ) .'</h6>' . esc_html__( 'Enter a feed name to uniquely identify this setup.', 'gravityformsicontact' ),
+						'default_value'  => $this->get_default_feed_name(),
 					),
 					array(
 						'name'           => 'list',
-						'label'          => __( 'iContact List', 'gravityformsicontact' ),
+						'label'          => esc_html__( 'iContact List', 'gravityformsicontact' ),
 						'type'           => 'select',
 						'required'       => true,
 						'choices'        => $this->lists_for_feed_setting(),
-						'tooltip'        => '<h6>'. __( 'iContact List', 'gravityformsicontact' ) .'</h6>' . __( 'Select which iContact list this feed will add contacts to.', 'gravityformsicontact' )
+						'tooltip'        => '<h6>'. esc_html__( 'iContact List', 'gravityformsicontact' ) .'</h6>' . esc_html__( 'Select which iContact list this feed will add contacts to.', 'gravityformsicontact' )
 					),
 					array(
 						'name'           => 'fields',
-						'label'          => __( 'Map Fields', 'gravityformsicontact' ),
+						'label'          => esc_html__( 'Map Fields', 'gravityformsicontact' ),
 						'type'           => 'field_map',
 						'field_map'      => $this->fields_for_feed_mapping(),
-						'tooltip'        => '<h6>'. __( 'Map Fields', 'gravityformsicontact' ) .'</h6>' . __( 'Select which Gravity Form fields pair with their respective iContact fields.', 'gravityformsicontact' )
+						'tooltip'        => '<h6>'. esc_html__( 'Map Fields', 'gravityformsicontact' ) .'</h6>' . esc_html__( 'Select which Gravity Form fields pair with their respective iContact fields.', 'gravityformsicontact' )
 					),
 					array(
 						'name'           => 'custom_fields',
-						'label'          => __( 'Custom Fields', 'gravityformsicontact' ),
+						'label'          => '',
 						'type'           => 'dynamic_field_map',
 						'field_map'      => $this->custom_fields_for_feed_setting(),
-						'tooltip'        => '<h6>'. __( 'Custom Fields', 'gravityformsicontact' ) .'</h6>' . __( 'Select or create a new iContact custom field to pair with Gravity Forms fields.', 'gravityformsicontact' )
 					),
 					array(
 						'name'           => 'feed_condition',
-						'label'          => __( 'Opt-In Condition', 'gravityformsicontact' ),
+						'label'          => esc_html__( 'Opt-In Condition', 'gravityformsicontact' ),
 						'type'           => 'feed_condition',
-						'checkbox_label' => __( 'Enable', 'gravityformsicontact' ),
-						'instructions'   => __( 'Export to iContact if', 'gravityformsicontact' ),
-						'tooltip'        => '<h6>'. __( 'Opt-In Condition', 'gravityformsicontact' ) .'</h6>' . __( 'When the opt-in condition is enabled, form submissions will only be exported to iContact when the condition is met. When disabled, all form submissions will be exported.', 'gravityformsicontact' )
+						'checkbox_label' => esc_html__( 'Enable', 'gravityformsicontact' ),
+						'instructions'   => esc_html__( 'Export to iContact if', 'gravityformsicontact' ),
+						'tooltip'        => '<h6>'. esc_html__( 'Opt-In Condition', 'gravityformsicontact' ) .'</h6>' . esc_html__( 'When the opt-in condition is enabled, form submissions will only be exported to iContact when the condition is met. When disabled, all form submissions will be exported.', 'gravityformsicontact' )
 					),
 				)	
 			)
@@ -161,7 +279,14 @@ class GFiContact extends GFFeedAddOn {
 		
 	}
 	
-	/* Fork of maybe_save_feed_settings to create new iContact custom fields */
+	/**
+	 * Fork of maybe_save_feed_settings to create new iContact custom fields.
+	 * 
+	 * @access public
+	 * @param int $feed_id
+	 * @param int $form_id
+	 * @return int $feed_id
+	 */
 	public function maybe_save_feed_settings( $feed_id, $form_id ) {
 
 		if ( ! rgpost( 'gform-settings-save' ) ) {
@@ -196,20 +321,26 @@ class GFiContact extends GFFeedAddOn {
 		return $feed_id;
 	}
 
-	/* Prepare iContact lists for feed field */
+	/**
+	 * Prepare iContact lists for feed field.
+	 * 
+	 * @access public
+	 * @return array $lists
+	 */
 	public function lists_for_feed_setting() {
 				
 		$lists = array();
 		
 		/* If iContact API credentials are invalid, return the lists array. */
-		if ( ! $this->initialize_api() )
+		if ( ! $this->initialize_api() ) {
 			return $lists;
+		}
 		
 		try {
 			
 			/* Get available iContact lists. */
 			$icontact_lists = $this->api->get_lists();
-						
+			
 			/* Add iContact lists to array and return it. */
 			foreach ( $icontact_lists as $list ) {
 				
@@ -231,84 +362,98 @@ class GFiContact extends GFFeedAddOn {
 		
 	}
 
-	/* Prepare fields for feed field mapping */
+	/**
+	 * Prepare fields for feed field mapping.
+	 * 
+	 * @access public
+	 * @return array
+	 */
 	public function fields_for_feed_mapping() {
 		
 		return array(
 			array(	
 				'name'          => 'email',
-				'label'         => __( 'Email Address', 'gravityformsicontact' ),
+				'label'         => esc_html__( 'Email Address', 'gravityformsicontact' ),
 				'required'      => true,
 				'field_type'    => array( 'email' ),
-				'default_value' => $this->get_first_email_field()
+				'default_value' => $this->get_first_field_by_type( 'email' )
 			),
 			array(	
-				'name'       => 'prefix',
-				'label'      => __( 'Prefix', 'gravityformsicontact' ),
+				'name'          => 'prefix',
+				'label'         => esc_html__( 'Prefix', 'gravityformsicontact' ),
 			),
 			array(	
-				'name'       => 'first_name',
-				'label'      => __( 'First Name', 'gravityformsicontact' ),
+				'name'          => 'first_name',
+				'label'         => esc_html__( 'First Name', 'gravityformsicontact' ),
+				'default_value' => $this->get_first_field_by_type( 'name', 3 )
 			),
 			array(	
-				'name'       => 'last_name',
-				'label'      => __( 'Last Name', 'gravityformsicontact' ),
+				'name'          => 'last_name',
+				'label'         => esc_html__( 'Last Name', 'gravityformsicontact' ),
+				'default_value' => $this->get_first_field_by_type( 'name', 6 )
 			),
 			array(	
-				'name'       => 'suffix',
-				'label'      => __( 'Suffix', 'gravityformsicontact' ),
+				'name'          => 'suffix',
+				'label'         => esc_html__( 'Suffix', 'gravityformsicontact' ),
 			),
 			array(	
-				'name'       => 'street',
-				'label'      => __( 'Address: Street Address', 'gravityformsicontact' ),
+				'name'          => 'street',
+				'label'         => esc_html__( 'Address: Street Address', 'gravityformsicontact' ),
 			),
 			array(	
-				'name'       => 'street2',
-				'label'      => __( 'Address: Line 2', 'gravityformsicontact' ),
+				'name'          => 'street2',
+				'label'         => esc_html__( 'Address: Line 2', 'gravityformsicontact' ),
 			),
 			array(	
-				'name'       => 'city',
-				'label'      => __( 'Address: City', 'gravityformsicontact' ),
+				'name'          => 'city',
+				'label'         => esc_html__( 'Address: City', 'gravityformsicontact' ),
 			),
 			array(	
-				'name'       => 'state',
-				'label'      => __( 'Address: State', 'gravityformsicontact' ),
+				'name'          => 'state',
+				'label'         => esc_html__( 'Address: State', 'gravityformsicontact' ),
 			),
 			array(	
-				'name'       => 'postal_code',
-				'label'      => __( 'Address: Postal Code', 'gravityformsicontact' ),
+				'name'          => 'postal_code',
+				'label'         => esc_html__( 'Address: Postal Code', 'gravityformsicontact' ),
 			),
 			array(	
-				'name'       => 'phone',
-				'label'      => __( 'Phone Number', 'gravityformsicontact' ),
+				'name'          => 'phone',
+				'label'         => esc_html__( 'Phone Number', 'gravityformsicontact' ),
 			),
 			array(	
-				'name'       => 'fax',
-				'label'      => __( 'Fax Number', 'gravityformsicontact' ),
+				'name'          => 'fax',
+				'label'         => esc_html__( 'Fax Number', 'gravityformsicontact' ),
 			),
 			array(	
-				'name'       => 'business',
-				'label'      => __( 'Business Number', 'gravityformsicontact' ),
+				'name'          => 'business',
+				'label'         => esc_html__( 'Business Number', 'gravityformsicontact' ),
 			),
 		);
 		
 	}
 
-	/* Prepare custom fields for feed field mapping */
+	/**
+	 * Prepare custom fields for feed field mapping.
+	 * 
+	 * @access public
+	 * @return array $fields
+	 */
 	public function custom_fields_for_feed_setting() {
 		
 		$fields = array();
 		
 		/* If iContact API credentials are invalid, return the fields array. */
-		if ( ! $this->initialize_api() )
-			return $fields;		
+		if ( ! $this->initialize_api() ) {
+			return $fields;
+		}
 		
 		/* Get available iContact fields. */
 		$icontact_fields = $this->api->get_custom_fields();
 		
 		/* If no iContact fields exist, return the fields array. */
-		if ( empty( $icontact_fields ) )
+		if ( empty( $icontact_fields ) ) {
 			return $fields;
+		}
 			
 		/* Add iContact fields to the fields array. */
 		foreach ( $icontact_fields as $field ) {
@@ -343,12 +488,13 @@ class GFiContact extends GFFeedAddOn {
 			
 		}
 		
-		if ( empty( $fields ) )
+		if ( empty( $fields ) ) {
 			return $fields;
+		}
 						
 		/* Add "Add Custom Field" to array. */
 		$fields[] = array(
-			'label' => __( 'Add Custom Field', 'gravityformsicontact' ),
+			'label' => esc_html__( 'Add Custom Field', 'gravityformsicontact' ),
 			'value' => 'gf_custom'	
 		);
 		
@@ -356,21 +502,29 @@ class GFiContact extends GFFeedAddOn {
 		
 	}
 
-	/* Create new iContact custom fields */
+	/**
+	 * Create new iContact custom fields.
+	 * 
+	 * @access public
+	 * @param array $settings
+	 * @return array $settings
+	 */
 	public function create_new_custom_fields( $settings ) {
 
 		global $_gaddon_posted_settings;
 
 		/* If no custom fields are set or if the API credentials are invalid, return settings. */
-		if ( empty( $settings['custom_fields'] ) || ! $this->initialize_api() )
+		if ( empty( $settings['custom_fields'] ) || ! $this->initialize_api() ) {
 			return $settings;
+		}
 	
 		/* Loop through each custom field. */
 		foreach ( $settings['custom_fields'] as $index => &$field ) {
 			
 			/* If no custom key is set, move on. */
-			if ( rgblank( $field['custom_key'] ) )
+			if ( rgblank( $field['custom_key'] ) ) {
 				continue;
+			}
 				
 			$custom_key = $field['custom_key'];
 			
@@ -411,22 +565,34 @@ class GFiContact extends GFFeedAddOn {
 		
 	}
 
-	/* Setup feed list columns */
+	/**
+	 * Setup columns for feed list table.
+	 * 
+	 * @access public
+	 * @return array
+	 */
 	public function feed_list_columns() {
 		
 		return array(
-			'feed_name' => __( 'Name', 'gravityformsicontact' ),
-			'list'      => __( 'iContact List', 'gravityformsicontact' )
+			'feed_name' => esc_html__( 'Name', 'gravityformsicontact' ),
+			'list'      => esc_html__( 'iContact List', 'gravityformsicontact' )
 		);
 		
 	}
 	
-	/* Change value of list feed column to list name */
+	/**
+	 * Get value for list feed list column.
+	 * 
+	 * @access public
+	 * @param array $feed
+	 * @return string $list
+	 */
 	public function get_column_value_list( $feed ) {
 			
 		/* If iContact instance is not initialized, return list ID. */
-		if ( ! $this->initialize_api() )
+		if ( ! $this->initialize_api() ) {
 			return $feed['meta']['list'];
+		}
 		
 		try {
 			
@@ -445,64 +611,40 @@ class GFiContact extends GFFeedAddOn {
 		
 	}
 
-	/* Hide "Add New" feed button if API credentials are invalid */		
-	public function feed_list_title() {
+	/**
+	 * Set feed creation control.
+	 * 
+	 * @access public
+	 * @return bool
+	 */
+	public function can_create_feed() {
 		
-		if ( $this->initialize_api() )
-			return parent::feed_list_title();
-			
-		return sprintf( __( '%s Feeds', 'gravityforms' ), $this->get_short_title() );
-		
-	}
-
-	/* Notify user to configure add-on before setting up feeds */
-	public function feed_list_message() {
-
-		$message = parent::feed_list_message();
-		
-		if ( $message !== false )
-			return $message;
-
-		if ( ! $this->initialize_api() )
-			return $this->configure_addon_message();
-
-		return false;
-		
-	}
-	
-	/* Feed list message for user to configure add-on */
-	public function configure_addon_message() {
-		
-		$settings_label = sprintf( __( '%s Settings', 'gravityforms' ), $this->get_short_title() );
-		$settings_link  = sprintf( '<a href="%s">%s</a>', esc_url( $this->get_plugin_settings_url() ), $settings_label );
-
-		return sprintf( __( 'To get started, please configure your %s.', 'gravityformsicontact' ), $settings_link );
+		return $this->initialize_api() && $this->api->is_client_folder_set();
 		
 	}
 
-	/* Get first email address field for form. */
-	public function get_first_email_field() {
+	/**
+	 * Enable feed duplication.
+	 * 
+	 * @access public
+	 * @param int $feed_id
+	 * @return bool
+	 */
+	public function can_duplicate_feed( $feed_id ) {
 		
-		/* Get the current form ID. */
-		$form_id = rgget( 'id' );
-		
-		/* Get the form. */
-		$form = GFAPI::get_form( $form_id );
-		
-		/* Get email fields for the form. */
-		$email_fields = GFCommon::get_fields_by_type( $form, array( 'email' ) );
-		
-		if ( ! empty( $email_fields ) ) {
-			
-			return $email_fields[0]->id;
-			
-		}
-		
-		return null;
+		return true;
 		
 	}
 
-	/* Process feed */
+	/**
+	 * Process feed.
+	 * 
+	 * @access public
+	 * @param array $feed
+	 * @param array $entry
+	 * @param array $form
+	 * @return void
+	 */
 	public function process_feed( $feed, $entry, $form ) {
 		
 		$this->log_debug( __METHOD__ . '(): Processing feed.' );
@@ -510,7 +652,7 @@ class GFiContact extends GFFeedAddOn {
 		/* If API instance is not initialized, exit. */
 		if ( ! $this->initialize_api() ) {
 			
-			$this->log_error( __METHOD__ . '(): Failed to set up the API.' );
+			$this->add_feed_error( esc_html__( 'Feed was not processed because API was not initialized.', 'gravityformsicontact' ), $feed, $entry, $form );
 			return;
 			
 		}
@@ -535,27 +677,33 @@ class GFiContact extends GFFeedAddOn {
 			'business'   => $this->get_field_value( $form, $entry, $mapped_fields['business'] )
 		);
 
-		/* Add custom fields to contact array. */
-		foreach ( $feed['meta']['custom_fields'] as $custom_field ) {
-			
-			if ( rgblank( $custom_field['key'] ) || $custom_field['key'] == 'gf_custom' || rgblank( $custom_field['value'] ) )
-				continue;
-
-			$field_value = $this->get_field_value( $form, $entry, $custom_field['value'] );
-			
-			if ( rgblank( $field_value ) )
-				continue;
-				
-			$contact[$custom_field['key']] = $field_value;
-			
-		}
-
 		/* If the email address is empty, exit. */
-		if ( rgblank( $contact['email'] ) ) {
+		if ( GFCommon::is_invalid_or_empty_email( $contact['email'] ) ) {
 			
-			$this->log_error( __METHOD__ . '(): Email address not provided.' );
+			$this->add_feed_error( esc_html__( 'Contact could not be created as email address was not provided.', 'gravityformsicontact' ), $feed, $entry, $form );
 			return;			
 		
+		}
+
+		/* Add custom fields to contact array. */
+		if ( rgars( $feed, 'meta/custom_fields' ) ) {
+			
+			foreach ( $feed['meta']['custom_fields'] as $custom_field ) {
+				
+				if ( rgblank( $custom_field['key'] ) || $custom_field['key'] == 'gf_custom' || rgblank( $custom_field['value'] ) ) {
+					continue;
+				}
+	
+				$field_value = $this->get_field_value( $form, $entry, $custom_field['value'] );
+				
+				if ( rgblank( $field_value ) ) {
+					continue;
+				}
+					
+				$contact[$custom_field['key']] = $field_value;
+				
+			}
+			
 		}
 		
 		/* Check to see if we're adding a new contact. */
@@ -566,6 +714,9 @@ class GFiContact extends GFFeedAddOn {
 			
 			/* Log that we're creating a new contact. */
 			$this->log_debug( __METHOD__ . "(): {$contact['email']} does not exist and will be created." );
+			
+			/* Log the contact object we're creating. */
+			$this->log_debug( __METHOD__ . '(): Creating contact: ' . print_r( $contact, true ) );
 			
 			try {
 				
@@ -578,36 +729,27 @@ class GFiContact extends GFFeedAddOn {
 			} catch ( Exception $e ) {
 				
 				/* Log error. */
-				$this->log_error( __METHOD__ . "(): {$contact['email']} was not added; {$e->getMessage()}" );
+				$this->add_feed_error( sprintf(
+					esc_html__( 'Contact could not be created. %s', 'gravityformsicontact' ),
+					$e->getMessage()
+				), $feed, $entry, $form );
 				
 				/* Stop processing feed. */
 				return false;
 				
 			}
 
-			try {
-				
-				/* Subscribe the new contact to the list. */
-				$subscription = $this->api->add_contact_to_list( $new_contact['contactId'], $feed['meta']['list'] );
-
-				/* Log that contact was subscribed to list. */
-				$this->log_debug( __METHOD__ . "(): {$contact['email']} has been subscribed to list; subscription ID: {$subscription[0]['subscriptionId']}." );
-
-			} catch ( Exception $e ) {
-				
-				/* Log error. */
-				$this->log_error( __METHOD__ . "(): {$contact['email']} was not subscribed to list; {$e->getMessage()}" );
-				
-				/* Stop processing feed. */
-				return false;
-				
-			}
+			$contact['id'] = $new_contact['contactId'];
+			$this->add_subscription( $contact, $feed, $entry, $form );
 			
 			
 		} else {
 			
 			/* Log that we're updating an existing contact. */
 			$this->log_debug( __METHOD__ . "(): {$contact['email']} already exists and will be updated." );
+
+			/* Log the contact object we're updating. */
+			$this->log_debug( __METHOD__ . '(): Updating contact: ' . print_r( $contact, true ) );
 
 			$contact_id = $find_contact[0]['contactId'];
 
@@ -622,48 +764,77 @@ class GFiContact extends GFFeedAddOn {
 			} catch ( Exception $e ) {
 				
 				/* Log error. */
-				$this->log_error( __METHOD__ . "(): {$contact['email']} was not updated; {$e->getMessage()}" );
+				$this->add_feed_error( sprintf(
+					esc_html__( 'Contact could not be updated. %s', 'gravityformsicontact' ),
+					$e->getMessage()
+				), $feed, $entry, $form );
 				
 				/* Stop processing feed. */
 				return false;
 				
 			}
 
-			try {
-				
-				/* Subscribe the contact to the list. */
-				$subscription = $this->api->add_contact_to_list( $contact_id, $feed['meta']['list'] );
-
-				/* Log whether or not contact was subscribed to list. */
-				if ( empty ( $subscription ) ) {
-					
-					$this->log_debug( __METHOD__ . "(): {$contact['email']} was already subscribed to list." );
-				
-				} else {
-					
-					$this->log_debug( __METHOD__ . "(): {$contact['email']} has been subscribed to list; subscription ID: {$subscription[0]['subscriptionId']}." );
-					
-				}
-
-			} catch ( Exception $e ) {
-				
-				/* Log error. */
-				$this->log_error( __METHOD__ . "(): {$contact['email']} was not subscribed to list; {$e->getMessage()}" );
-				
-				/* Stop processing feed. */
-				return false;
-				
-			}
+			$contact['id'] = $contact_id;
+			$this->add_subscription( $contact, $feed, $entry, $form );
 			
 		}
 
 	}
+	
+	/**
+	 * Add contact to subscription list.
+	 * 
+	 * @access public
+	 * @param array $contact
+	 * @param array $feed
+	 * @param array $entry
+	 * @param array $form
+	 * @return bool
+	 */
+	public function add_subscription( $contact, $feed, $entry, $form ) {
+		
+		try {
+			
+			/* Subscribe the contact to the list. */
+			$subscription = $this->api->add_contact_to_list( $contact['id'], $feed['meta']['list'] );
 
-	/* Checks validity of iContact API credentials and initializes API if valid. */
+			/* Log whether or not contact was subscribed to list. */
+			if ( empty ( $subscription ) ) {
+				
+				$this->log_debug( __METHOD__ . "(): {$contact['email']} was already subscribed to list." );
+			
+			} else {
+				
+				$this->log_debug( __METHOD__ . "(): {$contact['email']} has been subscribed to list; subscription ID: {$subscription[0]['subscriptionId']}." );
+				
+			}
+			
+		} catch ( Exception $e ) {
+			
+			/* Log error. */
+			$this->add_feed_error( sprintf(
+				esc_html__( 'Contact could not be subscribed to list. %s', 'gravityformsicontact' ),
+				$e->getMessage()
+			), $feed, $entry, $form );
+			
+			/* Stop processing feed. */
+			return false;
+			
+		}
+		
+	}
+
+	/**
+	 * Initialized iContact API if credentials are valid.
+	 * 
+	 * @access public
+	 * @return bool
+	 */
 	public function initialize_api() {
 
-		if ( ! is_null( $this->api ) )
+		if ( ! is_null( $this->api ) ) {
 			return true;
+		}
 		
 		/* Load the iContact API library. */
 		require_once 'includes/class-icontact.php';
@@ -672,18 +843,19 @@ class GFiContact extends GFFeedAddOn {
 		$settings = $this->get_plugin_settings();
 		
 		/* If any of the account information fields are empty, return null. */
-		if ( rgblank( $settings['app_id'] ) || rgblank( $settings['api_username'] ) || rgblank( $settings['api_password'] ) )
+		if ( rgblank( $settings['app_id'] ) || rgblank( $settings['api_username'] ) || rgblank( $settings['api_password'] ) ) {
 			return null;
+		}
 			
 		$this->log_debug( __METHOD__ . "(): Validating API info for {$settings['app_id']} / {$settings['api_username']}." );
 		
 		/* Create a new iContact object. */
-		$icontact = new iContact( $settings['app_id'], $settings['api_username'], $settings['api_password'] );
+		$icontact = new iContact( $settings['app_id'], $settings['api_username'], $settings['api_password'], $settings['client_folder'] );
 		
 		try {
 			
 			/* Run a test request. */
-			$contacts = $icontact->get_contacts();
+			$contacts = $icontact->get_client_folders();
 			
 			/* Log that test passed. */
 			$this->log_debug( __METHOD__ . '(): API credentials are valid.' );
@@ -699,6 +871,50 @@ class GFiContact extends GFFeedAddOn {
 			$this->log_error( __METHOD__ . '(): API credentials are invalid; '. $e->getMessage() );			
 
 			return false;
+			
+		}
+		
+	}
+	
+	/**
+	 * Sets the default client folder is upgrading from pre-1.1.
+	 * 
+	 * @access public
+	 * @param string $previous_version
+	 * @return void
+	 */
+	public function upgrade( $previous_version ) {
+		
+		$previous_is_pre_client_folder_change = ! empty( $previous_version ) && version_compare( $previous_version, '1.1', '<' );
+		
+		if ( $previous_is_pre_client_folder_change ) {
+			
+			/* Initialize the API. */
+			if ( ! $this->initialize_api() ) {
+				return;
+			}
+			
+			/* Get client folders. */
+			try {
+				
+				$client_folders = $this->api->get_client_folders();
+				
+			} catch ( Exception $e ) {
+				
+				$this->log_error( __METHOD__ . '(): Unable to get client folders; ' . $e->getMessage() );
+				
+				return;
+				
+			}
+			
+			/* Get the plugin settings. */
+			$settings = $this->get_plugin_settings();
+			
+			/* Add client folder to plugin settings. */
+			$settings['client_folder'] = $client_folders[0]['clientFolderId'];
+			
+			/* Update plugin settings. */
+			$this->update_plugin_settings( $settings );
 			
 		}
 		

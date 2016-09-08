@@ -6,11 +6,12 @@
 		protected $account_id = null;
 		protected $client_folder_id = null;
 		
-		public function __construct( $app_id, $api_username, $api_password ) {
+		public function __construct( $app_id, $api_username, $api_password, $client_folder_id = null ) {
 			
 			$this->app_id = $app_id;
 			$this->api_username = $api_username;
 			$this->api_password = $api_password;
+			$this->client_folder_id = $client_folder_id;
 			
 		}
 		
@@ -22,7 +23,7 @@
 		 */
 		public function get_url_base() {
 			
-			return $this->set_account_id() .'/c/'. $this->set_client_folder_id() .'/';
+			return $this->set_account_id() .'/c/'. $this->client_folder_id .'/';
 			
 		}
 		
@@ -35,7 +36,7 @@
 		public function request_headers() {
 			
 			return array(
-				'Except'       => '',
+				'Expect'       => '',
 				'Accept'       => 'application/json',
 				'Content-type' => 'application/json',
 				'Api-Version'  => '2.2',
@@ -69,25 +70,28 @@
 				'method'  => $method
 			);
 			
-			if ( $method == 'POST' )
+			if ( $method == 'POST' ) {
 				$args['body'] = json_encode( $options );
+			}
 
 			$response = wp_remote_request( $request_url, $args );
 			
 			/* If WP_Error, die. Otherwise, return decoded JSON. */
 			if ( is_wp_error( $response ) ) {
 				
-				die( 'Request failed. '. $response->get_error_messages() );
+				die( 'Request failed. '. $response->get_error_message() );
 				
 			} else {
 				
 				$response = json_decode( $response['body'], true );
 				
-				if ( isset( $response['errors'] ) )
+				if ( isset( $response['errors'] ) ) {
 					throw new Exception( $response['errors'][0] );
+				}
 
-				if ( isset( $response['warnings'] ) )
+				if ( isset( $response['warnings'] ) ) {
 					throw new Exception( $response['warnings'][0] );
+				}
 				
 				return empty( $return_key ) ? $response : $response[$return_key];	
 				
@@ -127,31 +131,7 @@
 			return $this->account_id;
 			
 		}
-		
-		/**
-		 * Fetch the Client Folder ID.
-		 * 
-		 * @access public
-		 * @return void
-		 */
-		public function set_client_folder_id() {
-			
-			/* If the account ID isn't set, go set it. */
-			if ( empty( $this->account_id ) )
-				$this->set_account_id();
 				
-			$clients = $this->make_request( $this->account_id . '/c/' );
-			
-			if ( isset( $clients['errors'] ) )
-				throw new Exception( 'No client folders were found for this account.' );
-				
-			$client_folder = $clients['clientfolders'][0];
-			$this->client_folder_id = $client_folder['clientFolderId'];
-			
-			return $this->client_folder_id;
-			
-		}
-		
 		/**
 		 * Add a new contact.
 		 * 
@@ -204,6 +184,29 @@
 		}
 		
 		/**
+		 * Get available client folders.
+		 * 
+		 * @access public
+		 * @return array $folders
+		 */
+		public function get_client_folders() {
+			
+			/* If the account ID isn't set, go set it. */
+			if ( empty( $this->account_id ) ) {
+				$this->set_account_id();
+			}
+				
+			$clients = $this->make_request( $this->account_id . '/c/' );
+			
+			if ( isset( $clients['errors'] ) ) {
+				throw new Exception( 'No client folders were found for this account.' );
+			}	
+			
+			return $clients['clientfolders'];
+			
+		}
+
+		/**
 		 * Fetch all contacts associated with this account.
 		 * 
 		 * @access public
@@ -247,7 +250,7 @@
 		 */
 		public function get_lists() {
 			
-			return $this->make_request( $this->get_url_base() . 'lists', array(), 'GET', 'lists' );
+			return $this->make_request( $this->get_url_base() . 'lists', array( 'limit' => 999 ), 'GET', 'lists' );
 			
 		}
 
@@ -261,6 +264,18 @@
 		public function get_list( $list_id ) {
 			
 			return $this->make_request( $this->get_url_base() . 'lists/' . $list_id, array(), 'GET', 'list' );
+			
+		}
+
+		/**
+		 * Checks to see if a client folder has been selected.
+		 * 
+		 * @access public
+		 * @return bool
+		 */
+		public function is_client_folder_set() {
+			
+			return ! empty( $this->client_folder_id );
 			
 		}
 
