@@ -1,0 +1,21 @@
+-----------------------------------------------------------
+1.2
+	- Added feed duplication support.
+	- Added support for delaying feed processing until payment by PayPal Standard is successfully completed.
+    - Fixed an issue with the request failed message.
+
+-----------------------------------------------------------
+1.1
+    - Added auto-mapping of first name and last name fields if only one name field exists.
+    - Added client folder option to plugin settings.
+    - Added default name for new feeds.
+    - Added gf_icontact() for easily getting an iContact instance.
+    - Fixed PHP warning during feed processing.
+    - Updated feed processing to abort if value of mapped Email Address field is invalid.
+    - Updated feed processing to use add_feed_error().
+    - Updated feed field mapping styling.
+    - Updated feed settings to support more than 20 iContact lists.
+
+-----------------------------------------------------------
+1.0
+	- It's all new!
