@@ -1,21 +1,30 @@
------------------------------------------------------------
-1.2
-	- Added feed duplication support.
-	- Added support for delaying feed processing until payment by PayPal Standard is successfully completed.
-    - Fixed an issue with the request failed message.
+# 1.3 | 2018-03-30
+   - Added security enhancements.
+   - Added GPL to plugin header.
+   - Added the 'gform_icontact_request_args' hook allowing customers to modify the options array before sending requests to iContact.
+   - Updated Plugin URI and Author URI to use https.
+   - Fixed PHP notice on the add-on settings page.
+   - Fixed strings for translations.
+   - Increased limit for number of client folders retrieved from iContact.
 
------------------------------------------------------------
-1.1
-    - Added auto-mapping of first name and last name fields if only one name field exists.
-    - Added client folder option to plugin settings.
-    - Added default name for new feeds.
-    - Added gf_icontact() for easily getting an iContact instance.
-    - Fixed PHP warning during feed processing.
-    - Updated feed processing to abort if value of mapped Email Address field is invalid.
-    - Updated feed processing to use add_feed_error().
-    - Updated feed field mapping styling.
-    - Updated feed settings to support more than 20 iContact lists.
 
------------------------------------------------------------
-1.0
-	- It's all new!
+# 1.2 | 2016-08-31
+   - Added feed duplication support.
+   - Added support for delaying feed processing until payment by PayPal Standard is successfully completed.
+   - Fixed an issue with the request failed message.
+
+
+# 1.1 | 2015-12-16
+   - Added auto-mapping of first name and last name fields if only one name field exists.
+   - Added client folder option to plugin settings.
+   - Added default name for new feeds.
+   - Added gf_icontact() for easily getting an iContact instance.
+   - Fixed PHP warning during feed processing.
+   - Updated feed processing to abort if value of mapped Email Address field is invalid.
+   - Updated feed processing to use add_feed_error().
+   - Updated feed field mapping styling.
+   - Updated feed settings to support more than 20 iContact lists.
+
+
+# 1.0 | 2015-05-20
+   - It's all new!
