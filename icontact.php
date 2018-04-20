@@ -1,12 +1,18 @@
 <?php
+
+// don't load directly
+if ( ! defined( 'ABSPATH' ) ) {
+	die();
+}
 	
 /*
 Plugin Name: Gravity Forms iContact Add-On
-Plugin URI: http://www.gravityforms.com
-Description: Integrates Gravity Forms with iContact allowing form submissions to be automatically sent to your iContact account.
-Version: 1.2
+Plugin URI: https://www.gravityforms.com
+Description: Integrates Gravity Forms with iContact, allowing form submissions to be automatically sent to your iContact account.
+Version: 1.3
 Author: rocketgenius
-Author URI: http://www.rocketgenius.com
+Author URI: https://www.rocketgenius.com
+License: GPL-2.0+
 Text Domain: gravityformsicontact
 Domain Path: /languages
 
@@ -29,7 +35,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-define( 'GF_ICONTACT_VERSION', '1.2' );
+define( 'GF_ICONTACT_VERSION', '1.3' );
 
 add_action( 'gform_loaded', array( 'GF_iContact_Bootstrap', 'load' ), 5 );
 

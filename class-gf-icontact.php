@@ -1,4 +1,9 @@
 <?php
+
+// don't load directly
+if ( ! defined( 'ABSPATH' ) ) {
+	die();
+}
 	
 GFForms::include_feed_addon_framework();
 
@@ -147,7 +152,7 @@ class GFiContact extends GFFeedAddOn {
 		
 		$description  = '<p>';
 		$description .= sprintf(
-			esc_html__( 'iContact makes it easy to send email newsletters to your customers, manage your subscriber lists, and track campaign performance. Use Gravity Forms to collect customer information and automatically add them to your iContact list. If you don\'t have an iConact account, you can %1$s sign up for one here.%2$s', 'gravityformsicontact' ),
+			esc_html__( 'iContact makes it easy to send email newsletters to your customers, manage your subscriber lists, and track campaign performance. Use Gravity Forms to collect customer information and automatically add it to your iContact list. If you don\'t have an iContact account, you can %1$s sign up for one here.%2$s', 'gravityformsicontact' ),
 			'<a href="http://www.icontact.com/" target="_blank">', '</a>'
 		);
 		$description .= '</p>';
@@ -850,7 +855,7 @@ class GFiContact extends GFFeedAddOn {
 		$this->log_debug( __METHOD__ . "(): Validating API info for {$settings['app_id']} / {$settings['api_username']}." );
 		
 		/* Create a new iContact object. */
-		$icontact = new iContact( $settings['app_id'], $settings['api_username'], $settings['api_password'], $settings['client_folder'] );
+		$icontact = new iContact( $settings['app_id'], $settings['api_username'], $settings['api_password'], rgar( $settings, 'client_folder' ) );
 		
 		try {
 			

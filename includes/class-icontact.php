@@ -57,14 +57,27 @@
 		 * @return void
 		 */
 		public function make_request( $action = null, $options = array(), $method = 'GET', $return_key = null ) {
-			
-			/* Build request options string. */
+
+			/**
+			 * Filter the options array so that is modifiable before sending requests to iContact.
+			 *
+			 * @since 1.2.1
+			 * @see   https://www.gravityhelp.com/documentation/article/gform_icontact_request_args/
+			 *
+			 * @param array  $options    Query arguments to be sent in the request.
+			 * @param string $action     The action being sent to the iContact API, passed in the URL.
+			 * @param string $method     The request method being used. Example: GET.
+			 * @param string $return_key The array key desired from the response.
+			 */
+			$options = apply_filters( 'gform_icontact_request_args', $options, $action, $method, $return_key );
+
+			// Build request options string.
 			$request_options = ( $method == 'GET' && ! empty( $options ) ) ? '?' . http_build_query( $options ) : '';
 			
-			/* Build request URL. */
+			// Build request URL.
 			$request_url = $this->api_url . $action . $request_options;
 			
-			/* Prepare request and execute. */
+			// Prepare request and execute.
 			$args = array(
 				'headers' => $this->request_headers(),
 				'method'  => $method
@@ -76,7 +89,7 @@
 
 			$response = wp_remote_request( $request_url, $args );
 			
-			/* If WP_Error, die. Otherwise, return decoded JSON. */
+			// If WP_Error, die. Otherwise, return decoded JSON.
 			if ( is_wp_error( $response ) ) {
 				
 				die( 'Request failed. '. $response->get_error_message() );
@@ -196,7 +209,7 @@
 				$this->set_account_id();
 			}
 				
-			$clients = $this->make_request( $this->account_id . '/c/' );
+			$clients = $this->make_request( $this->account_id . '/c/', array( 'limit' => 999 ) );
 			
 			if ( isset( $clients['errors'] ) ) {
 				throw new Exception( 'No client folders were found for this account.' );
