@@ -1,248 +1,237 @@
-# Copyright 2009-2018 Rocketgenius, Inc.
+# Copyright (C) 2020 Gravity Forms
+# This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Gravity Forms iContact Add-On 1.3\n"
-"Report-Msgid-Bugs-To: http://www.gravtiyhelp.com\n"
-"POT-Creation-Date: 2018-04-10 16:39:24+00:00\n"
+"Project-Id-Version: Gravity Forms iContact Add-On 1.5\n"
+"Report-Msgid-Bugs-To: https://gravityforms.com/support\n"
+"Last-Translator: Gravity Forms <support@gravityforms.com>\n"
+"Language-Team: Gravity Forms <support@gravityforms.com>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Rocketgenius <customerservice@rocketgenius.com>\n"
-"Language-Team: Rocketgenius <customerservice@rocketgenius.com>\n"
-"X-Generator: Gravity Forms Build Server\n"
-"X-Poedit-KeywordsList: "
-"__;_e;_x:1,2c;_ex:1,2c;_n:1,2;_nx:1,2,4c;_n_noop:1,2;_nx_noop:1,2,3c;esc_"
-"attr__;esc_html__;esc_attr_e;esc_html_e;esc_attr_x:1,2c;esc_html_x:1,2c;\n"
-"Project-Id-Version: gravityformsicontact\n"
-"Language: en_US\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Poedit-Basepath: ../\n"
-"X-Poedit-Bookmarks: \n"
-"X-Poedit-Country: United States\n"
-"X-Poedit-SearchPath-0: .\n"
-"X-Poedit-SourceCharset: utf-8\n"
-"X-Textdomain-Support: yes\n"
+"POT-Creation-Date: 2020-09-08T16:14:45+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.4.0\n"
+"X-Domain: gravityformsicontact\n"
 
-#: class-gf-icontact.php:62
-msgid "Subscribe contact to iContact only when payment is received."
-msgstr ""
-
-#: class-gf-icontact.php:106
-msgid "Application ID"
-msgstr ""
-
-#: class-gf-icontact.php:113
-msgid "Account Email Address"
-msgstr ""
-
-#: class-gf-icontact.php:120
-msgid "API Password"
-msgstr ""
-
-#: class-gf-icontact.php:128
-msgid "Client Folder"
-msgstr ""
-
-#: class-gf-icontact.php:136
-msgid "iContact settings have been updated."
-msgstr ""
-
-#: class-gf-icontact.php:155
-msgid ""
-"iContact makes it easy to send email newsletters to your customers, manage "
-"your subscriber lists, and track campaign performance. Use Gravity Forms to "
-"collect customer information and automatically add it to your iContact "
-"list. If you don't have an iContact account, you can %1$s sign up for one "
-"here.%2$s"
-msgstr ""
-
-#: class-gf-icontact.php:163
-msgid ""
-"Gravity Forms iContact Add-On requires your Application ID, API username "
-"and API password. To obtain an application ID, follow the steps below:"
-msgstr ""
-
-#: class-gf-icontact.php:168
-msgid "Visit iContact's %1$s application registration page.%2$s"
-msgstr ""
-
-#: class-gf-icontact.php:171
-msgid "Set an application name and description for your application."
-msgstr ""
-
-#: class-gf-icontact.php:172
-msgid "Choose to show information for API 2.0."
-msgstr ""
-
-#: class-gf-icontact.php:173
-msgid "Copy the provided API-AppId into the Application ID setting field below."
-msgstr ""
-
-#: class-gf-icontact.php:174
-msgid "Click \"Enable this AppId for your account\"."
-msgstr ""
-
-#: class-gf-icontact.php:175
-msgid "Create a password for your application and click save."
-msgstr ""
-
-#: class-gf-icontact.php:176
-msgid ""
-"Enter your API password, along with your iContact account username, into "
-"the settings fields below."
-msgstr ""
-
-#: class-gf-icontact.php:195
-msgid "Select a Client Folder"
-msgstr ""
-
-#: class-gf-icontact.php:222
-msgid "Default Client Folder"
-msgstr ""
-
-#: class-gf-icontact.php:246
-msgid "Feed Name"
-msgstr ""
-
-#: class-gf-icontact.php:249 class-gf-icontact.php:582
-msgid "Name"
-msgstr ""
-
-#: class-gf-icontact.php:249
-msgid "Enter a feed name to uniquely identify this setup."
-msgstr ""
-
-#: class-gf-icontact.php:254 class-gf-icontact.php:258
-#: class-gf-icontact.php:583
-msgid "iContact List"
-msgstr ""
-
-#: class-gf-icontact.php:258
-msgid "Select which iContact list this feed will add contacts to."
-msgstr ""
-
-#: class-gf-icontact.php:262 class-gf-icontact.php:265
-msgid "Map Fields"
-msgstr ""
-
-#: class-gf-icontact.php:265
-msgid "Select which Gravity Form fields pair with their respective iContact fields."
-msgstr ""
-
-#: class-gf-icontact.php:275 class-gf-icontact.php:279
-msgid "Opt-In Condition"
-msgstr ""
-
-#: class-gf-icontact.php:277
-msgid "Enable"
-msgstr ""
-
-#: class-gf-icontact.php:278
-msgid "Export to iContact if"
-msgstr ""
-
-#: class-gf-icontact.php:279
-msgid ""
-"When the opt-in condition is enabled, form submissions will only be "
-"exported to iContact when the condition is met. When disabled, all form "
-"submissions will be exported."
-msgstr ""
-
-#: class-gf-icontact.php:381
-msgid "Email Address"
-msgstr ""
-
-#: class-gf-icontact.php:388
-msgid "Prefix"
-msgstr ""
-
-#: class-gf-icontact.php:392
-msgid "First Name"
-msgstr ""
-
-#: class-gf-icontact.php:397
-msgid "Last Name"
-msgstr ""
-
-#: class-gf-icontact.php:402
-msgid "Suffix"
-msgstr ""
-
-#: class-gf-icontact.php:406
-msgid "Address: Street Address"
-msgstr ""
-
-#: class-gf-icontact.php:410
-msgid "Address: Line 2"
-msgstr ""
-
-#: class-gf-icontact.php:414
-msgid "Address: City"
-msgstr ""
-
-#: class-gf-icontact.php:418
-msgid "Address: State"
-msgstr ""
-
-#: class-gf-icontact.php:422
-msgid "Address: Postal Code"
-msgstr ""
-
-#: class-gf-icontact.php:426
-msgid "Phone Number"
-msgstr ""
-
-#: class-gf-icontact.php:430
-msgid "Fax Number"
-msgstr ""
-
-#: class-gf-icontact.php:434
-msgid "Business Number"
-msgstr ""
-
-#: class-gf-icontact.php:502
-msgid "Add Custom Field"
-msgstr ""
-
-#: class-gf-icontact.php:660
-msgid "Feed was not processed because API was not initialized."
-msgstr ""
-
-#: class-gf-icontact.php:688
-msgid "Contact could not be created as email address was not provided."
-msgstr ""
-
-#: class-gf-icontact.php:738
-msgid "Contact could not be created. %s"
-msgstr ""
-
-#: class-gf-icontact.php:773
-msgid "Contact could not be updated. %s"
-msgstr ""
-
-#: class-gf-icontact.php:821
-msgid "Contact could not be subscribed to list. %s"
-msgstr ""
-
-#. Plugin Name of the plugin/theme
+#. Plugin Name of the plugin
 msgid "Gravity Forms iContact Add-On"
 msgstr ""
 
-#. Plugin URI of the plugin/theme
-msgid "https://www.gravityforms.com"
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+msgid "https://gravityforms.com"
 msgstr ""
 
-#. Description of the plugin/theme
-msgid ""
-"Integrates Gravity Forms with iContact, allowing form submissions to be "
-"automatically sent to your iContact account."
+#. Description of the plugin
+msgid "Integrates Gravity Forms with iContact, allowing form submissions to be automatically sent to your iContact account."
 msgstr ""
 
-#. Author of the plugin/theme
-msgid "rocketgenius"
+#. Author of the plugin
+msgid "Gravity Forms"
 msgstr ""
 
-#. Author URI of the plugin/theme
-msgid "https://www.rocketgenius.com"
+#: class-gf-icontact.php:67
+msgid "Subscribe contact to iContact only when payment is received."
+msgstr ""
+
+#: class-gf-icontact.php:125
+msgid "Application ID"
+msgstr ""
+
+#: class-gf-icontact.php:132
+msgid "Account Username"
+msgstr ""
+
+#: class-gf-icontact.php:139
+msgid "API Password"
+msgstr ""
+
+#: class-gf-icontact.php:147
+msgid "Client Folder"
+msgstr ""
+
+#: class-gf-icontact.php:151
+msgid "Unable to retrieve Client Folders."
+msgstr ""
+
+#: class-gf-icontact.php:156
+msgid "iContact settings have been updated."
+msgstr ""
+
+#: class-gf-icontact.php:175
+msgid "iContact makes it easy to send email newsletters to your customers, manage your subscriber lists, and track campaign performance. Use Gravity Forms to collect customer information and automatically add it to your iContact list. If you don't have an iContact account, you can %1$s sign up for one here.%2$s"
+msgstr ""
+
+#: class-gf-icontact.php:183
+msgid "Gravity Forms iContact Add-On requires your Application ID, API username and API password. To obtain an application ID, follow the steps below:"
+msgstr ""
+
+#: class-gf-icontact.php:188
+msgid "Visit iContact's %1$s application registration page.%2$s"
+msgstr ""
+
+#: class-gf-icontact.php:191
+msgid "Set an application name and description for your application."
+msgstr ""
+
+#: class-gf-icontact.php:192
+msgid "Choose to show information for API 2.0."
+msgstr ""
+
+#: class-gf-icontact.php:193
+msgid "Copy the provided API-AppId into the Application ID setting field below."
+msgstr ""
+
+#: class-gf-icontact.php:194
+msgid "Click \"Enable this AppId for your account\"."
+msgstr ""
+
+#: class-gf-icontact.php:195
+msgid "Create a password for your application and click save."
+msgstr ""
+
+#: class-gf-icontact.php:196
+msgid "Enter your API password, along with your iContact account username, into the settings fields below."
+msgstr ""
+
+#: class-gf-icontact.php:234
+msgid "Select a Client Folder"
+msgstr ""
+
+#: class-gf-icontact.php:242
+msgid "Default Client Folder"
+msgstr ""
+
+#: class-gf-icontact.php:266
+msgid "Feed Name"
+msgstr ""
+
+#: class-gf-icontact.php:269
+#: class-gf-icontact.php:573
+msgid "Name"
+msgstr ""
+
+#: class-gf-icontact.php:269
+msgid "Enter a feed name to uniquely identify this setup."
+msgstr ""
+
+#: class-gf-icontact.php:275
+#: class-gf-icontact.php:280
+#: class-gf-icontact.php:574
+msgid "iContact List"
+msgstr ""
+
+#: class-gf-icontact.php:279
+msgid "Unable to retrieve Lists."
+msgstr ""
+
+#: class-gf-icontact.php:280
+msgid "Select which iContact list this feed will add contacts to."
+msgstr ""
+
+#: class-gf-icontact.php:284
+#: class-gf-icontact.php:287
+msgid "Map Fields"
+msgstr ""
+
+#: class-gf-icontact.php:287
+msgid "Select which Gravity Form fields pair with their respective iContact fields."
+msgstr ""
+
+#: class-gf-icontact.php:298
+#: class-gf-icontact.php:302
+msgid "Opt-In Condition"
+msgstr ""
+
+#: class-gf-icontact.php:300
+msgid "Enable"
+msgstr ""
+
+#: class-gf-icontact.php:301
+msgid "Export to iContact if"
+msgstr ""
+
+#: class-gf-icontact.php:302
+msgid "When the opt-in condition is enabled, form submissions will only be exported to iContact when the condition is met. When disabled, all form submissions will be exported."
+msgstr ""
+
+#: class-gf-icontact.php:361
+msgid "Email Address"
+msgstr ""
+
+#: class-gf-icontact.php:368
+msgid "Prefix"
+msgstr ""
+
+#: class-gf-icontact.php:372
+msgid "First Name"
+msgstr ""
+
+#: class-gf-icontact.php:377
+msgid "Last Name"
+msgstr ""
+
+#: class-gf-icontact.php:382
+msgid "Suffix"
+msgstr ""
+
+#: class-gf-icontact.php:386
+msgid "Address: Street Address"
+msgstr ""
+
+#: class-gf-icontact.php:390
+msgid "Address: Line 2"
+msgstr ""
+
+#: class-gf-icontact.php:394
+msgid "Address: City"
+msgstr ""
+
+#: class-gf-icontact.php:398
+msgid "Address: State"
+msgstr ""
+
+#: class-gf-icontact.php:402
+msgid "Address: Postal Code"
+msgstr ""
+
+#: class-gf-icontact.php:406
+msgid "Phone Number"
+msgstr ""
+
+#: class-gf-icontact.php:410
+msgid "Fax Number"
+msgstr ""
+
+#: class-gf-icontact.php:414
+msgid "Business Number"
+msgstr ""
+
+#: class-gf-icontact.php:482
+msgid "Add Custom Field"
+msgstr ""
+
+#: class-gf-icontact.php:647
+msgid "Feed was not processed because API was not initialized."
+msgstr ""
+
+#: class-gf-icontact.php:675
+msgid "Contact could not be created as email address was not provided."
+msgstr ""
+
+#: class-gf-icontact.php:718
+msgid "Contact could not be created. %s"
+msgstr ""
+
+#: class-gf-icontact.php:737
+msgid "Unable to determine if contact already exists. %s"
+msgstr ""
+
+#: class-gf-icontact.php:757
+msgid "Contact could not be updated. %s"
+msgstr ""
+
+#: class-gf-icontact.php:796
+msgid "Contact could not be subscribed to list. %s"
 msgstr ""

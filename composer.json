@@ -1,0 +1,9 @@
+{
+    "name": "wp-premium/gravityformsicontact",
+    "type": "wordpress-plugin",
+    "autoload": {
+        "classmap": [
+            "."
+        ]
+    }
+}
